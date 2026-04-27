@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dataset generation entry point for M-042 (ddr_lesion_segmentation).
+"""Dataset generation entry point for M-102 (Rad-ReStruct chest X-ray VQA).
 
 Usage:
     python examples/generate.py
@@ -21,7 +21,7 @@ def main():
     parser.add_argument("--output", type=str, default="data/questions")
     args = parser.parse_args()
 
-    print("Generating M-042 (ddr_lesion_segmentation) dataset...")
+    print("Generating M-102 (radrestruct_chest_xr_vqa) dataset...")
     config = TaskConfig(
         num_samples=args.num_samples,
         output_dir=Path(args.output),

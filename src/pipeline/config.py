@@ -1,38 +1,20 @@
-"""Pipeline configuration for M-042 (ddr_lesion_segmentation)."""
+"""Pipeline configuration for M-102 Rad-ReStruct chest X-ray VQA."""
 from pathlib import Path
 from pydantic import Field
 from core.pipeline import PipelineConfig
 
 
 class TaskConfig(PipelineConfig):
-    """Configuration for M-042 pipeline.
+    """Rad-ReStruct + OpenI structured chest X-ray VQA task config."""
 
-    Inherited from PipelineConfig:
-        num_samples: Optional[int]  # Max samples (None = all)
-        domain: str
-        output_dir: Path
-        split: str
-    """
+    domain: str = Field(default="radrestruct_chest_xr_vqa")
 
-    domain: str = Field(default="candidptx_pneumothorax_rib_tube_seg")
-
-    s3_bucket: str = Field(
-        default="med-vr-datasets",
-        description="S3 bucket containing the raw M-042 data",
-    )
-    s3_prefix: str = Field(
-        default="M-102_Candid-PTX/raw/",
-        description="S3 key prefix for the dataset raw data",
-    )
-    fps: int = Field(
-        default=3,
-        description="Frames per second for the generated videos",
-    )
-    raw_dir: Path = Field(
-        default=Path("raw"),
-        description="Local directory for downloaded raw data",
-    )
-    task_prompt: str = Field(
-        default="This chest X-ray (Candid-PTX). Segment pneumothorax (red), rib fractures (green), and chest tubes (blue) simultaneously.",
-        description="The task instruction shown to the reasoning model.",
-    )
+    s3_bucket: str = Field(default="med-vr-datasets")
+    s3_prefix: str = Field(default="M-102/")  # contains radrestruct_labels/ + openi_images/
+    fps: int = Field(default=4)
+    raw_dir: Path = Field(default=Path("raw"))
+    target_size: tuple = Field(default=(640, 640))
+    # Max QA pairs to render per sample → keeps the GT video in the 5-15s window.
+    max_qa_pairs: int = Field(default=6)
+    # Frames each (question_only) and (question+answer) panel is held.
+    frames_per_panel: int = Field(default=5)
