@@ -1,6 +1,12 @@
-# M-042 — Ddr Lesion Segmentation
+# M-102 — Rad-ReStruct + OpenI Chest X-Ray Structured VQA
 
-DDR 4-class retinal lesion segmentation.
+> **Note on naming**: the repo slug retains the original
+> `candidptx_pneumothorax_rib_tube_seg` token so downstream identifiers
+> stay stable, but the **pipeline content is structured chest-X-ray VQA
+> built from Rad-ReStruct labels and the OpenI NLM CXR image pool**.
+> CandidPTX (Auckland) raw bytes are not publicly auto-onrampable
+> (PhysioNet-style credentialed access only), so M-102 ships radrestruct
+> VQA samples under the same M-102 slot.
 
 This repository is part of the Med-VR data-pipeline suite for the VBVR
 (Very Big Video Reasoning) benchmark. It produces standardized video-
@@ -10,12 +16,19 @@ reasoning task samples from the underlying raw medical dataset.
 
 **Prompt shown to the model**:
 
-> This is a color fundus photograph. Segment the four types of retinal lesions: hard exudates (yellow), hemorrhages (red), microaneurysms (magenta), and soft exudates (cyan). Overlay each lesion with its assigned color and contour.
+> This video shows a chest X-ray (Indiana University OpenI dataset) with a
+> structured radiology report rendered as a sequence of question/answer
+> panels (Rad-ReStruct schema). Each panel reveals one diagnostic question
+> and its ground-truth answer in order: questions first appear alone
+> (yellow), then the answer is revealed (green for positive findings,
+> grey for negatives like "no" / "no selection"). For each question in
+> the video, report the answer exactly as shown.
 
 ## S3 Raw Data
 
 ```
-s3://med-vr-datasets/M-042-044_DDR/raw/
+s3://med-vr-datasets/M-102/radrestruct_labels/   (cloned label repo)
+s3://med-vr-datasets/M-102/openi_images/         (~7470 PNG)
 ```
 
 ## Quick Start
@@ -36,8 +49,8 @@ python examples/generate.py --output data/my_output
 ## Output Layout
 
 ```
-data/questions/ddr_lesion_segmentation_task/
-├── task_0000/
+data/questions/radrestruct_chest_xr_vqa_task/
+├── radrestruct_<report_id>_<NNNNN>/
 │   ├── first_frame.png
 │   ├── final_frame.png
 │   ├── first_video.mp4
@@ -45,14 +58,8 @@ data/questions/ddr_lesion_segmentation_task/
 │   ├── ground_truth.mp4
 │   ├── prompt.txt
 │   └── metadata.json
-├── task_0001/
-└── ...
+├── ...
 ```
-
-## Example Output
-
-See [`examples/example_output/`](examples/example_output/) for 2 reference
-samples committed alongside the code.
 
 ## Configuration
 
@@ -60,30 +67,29 @@ samples committed alongside the code.
 
 | Field | Default | Description |
 |---|---|---|
-| `domain` | `"ddr_lesion_segmentation"` | Task domain string used in output paths. |
+| `domain` | `"radrestruct_chest_xr_vqa"` | Task domain string used in output paths. |
 | `s3_bucket` | `"med-vr-datasets"` | S3 bucket containing raw data. |
-| `s3_prefix` | `"M-042-044_DDR/raw/"` | S3 key prefix for raw data. |
-| `fps` | `8` | Output video FPS. |
-| `raw_dir` | `Path("raw")` | Local raw cache directory. |
-| `num_samples` | `None` | Max samples (None = all). |
+| `s3_prefix` | `"M-102/"` | S3 key prefix containing radrestruct_labels/ and openi_images/. |
+| `fps` | `4` | Output video FPS. |
+| `target_size` | `(640, 640)` | Output frame size. |
+| `max_qa_pairs` | `6` | Max QA pairs rendered per sample. |
+| `frames_per_panel` | `5` | Frames each panel is held. |
 
 ## Repository Structure
 
 ```
-M-042_ddr_lesion_segmentation_data-pipeline/
-├── core/                ← shared pipeline framework (verbatim)
+M-102_candidptx_pneumothorax_rib_tube_seg_data-pipeline/
+├── core/                ← shared pipeline framework
 ├── eval/                ← shared evaluation utilities
 ├── src/
 │   ├── download/
-│   │   └── downloader.py   ← S3 raw-data downloader
+│   │   └── downloader.py   ← S3 raw-data downloader (uses aws s3 sync)
 │   └── pipeline/
 │       ├── config.py        ← task config
 │       ├── pipeline.py      ← TaskPipeline
-│       ├── transforms.py    ← visualization helpers (shim)
-│       └── _phase2/         ← vendored phase2 prototype logic
+│       └── transforms.py    ← visualization helpers
 ├── examples/
-│   ├── generate.py
-│   └── example_output/      ← committed reference samples
+│   └── generate.py
 ├── requirements.txt
 ├── README.md
 └── LICENSE
