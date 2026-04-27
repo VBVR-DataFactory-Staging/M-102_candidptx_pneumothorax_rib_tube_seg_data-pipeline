@@ -122,7 +122,7 @@ class TaskPipeline(BasePipeline):
         s3_prefix = os.environ.get("INCREMENTAL_S3_PREFIX", "")
         writer = OutputWriter(self.config.output_dir)
         samples: List[TaskSample] = []
-        cap = self.task_config.num_samples or 1500
+        cap = self.task_config.num_samples or 300
         processed = 0
         try:
             for idx, raw in enumerate(self.download()):
